@@ -2,6 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:myapp/modelos/planeta.dart';
 import 'package:myapp/controle/controle_planeta.dart';
 import 'package:myapp/telas/tela_planeta.dart';
+import 'package:myapp/telas/tela_detalhes_planeta.dart';
+import 'package:flutter/material.dart';
+import 'package:myapp/modelos/planeta.dart';
+
+class TelaDetalhesPlaneta extends StatelessWidget {
+  final Planeta planeta;
+
+  const TelaDetalhesPlaneta({super.key, required this.planeta});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalhes do Planeta'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Nome: ${planeta.nome}', style: const TextStyle(fontSize: 18)),
+            Text('Apelido: ${planeta.apelido ?? "Não informado"}', style: const TextStyle(fontSize: 18)),
+            Text('Distância do Sol: ${planeta.distancia} UA', style: const TextStyle(fontSize: 18)),
+            Text('Tamanho: ${planeta.tamanho} km', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Voltar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 void main() {
   runApp(const MyApp());
@@ -88,8 +124,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _excluirPlaneta(int? id) async {
     if (id == null) return;
-    await _controle.excluirPlaneta(id);
-    _carregarPlanetas();
+    
+    // Confirmação antes de excluir
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Excluir Planeta'),
+        content: const Text('Você tem certeza de que deseja excluir este planeta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      await _controle.excluirPlaneta(id);
+      _carregarPlanetas();
+    }
+  }
+
+  void _verDetalhesPlaneta(BuildContext context, Planeta planeta) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaDetalhesPlaneta(planeta: planeta),
+      ),
+    );
   }
 
   @override
@@ -131,6 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ],
                         ),
+                        onTap: () => _verDetalhesPlaneta(context, planeta), // Navega para a tela de detalhes
                       ),
                     );
                   },
